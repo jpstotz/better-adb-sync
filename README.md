@@ -113,10 +113,8 @@ PC Side
   distribution, this should already be the case; if you used the SDK, you
   probably will have to add an entry to PATH in your ~/.profile file, log out
   and log back in.
-* `git clone https://github.com/google/adb-sync`
-* `cd adb-sync`
-* Copy or symlink the adb-sync script somewhere in your PATH. For example:
-  `cp adb-sync /usr/local/bin/`
+* `git clone https://github.com/jpstotz/better-adb-sync.git
+* `pip install better-adb-sync/`
 
 Usage
 =====
