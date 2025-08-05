@@ -4,10 +4,16 @@ An [rsync](https://wiki.archlinux.org/title/rsync)-like program to sync files be
 
 ## Installation
 
-Available on [PyPI](https://pypi.org/project/BetterADBSync/)
+Preparation: Make sure BetterADBSync version from PyPi.org is no longer installed:
+```
+$ pip uninstall BetterADBSync
+```
+
+Download and install BetterADBSync fork from GitHub 
 
 ```
-$ pip install BetterADBSync
+$ git clone https://github.com/jpstotz/better-adb-sync.git
+$ pip install better-adb-sync/
 ```
 
 ## QRD
