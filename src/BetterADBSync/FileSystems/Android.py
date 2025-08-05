@@ -84,7 +84,12 @@ class AndroidFileSystem(FileSystem):
 
         lines_to_yield: List[str] = []
         while adb_line := self.proc_adb_shell.stdout.readline():
-            adb_line = adb_line.decode(self.adb_encoding).rstrip("\r\n")
+            try:
+                adb_line = adb_line.decode(self.adb_encoding).rstrip("\r\n")
+            except UnicodeDecodeError as e:
+                errmsg = "Line to decode without the problematic characters: {}".format(adb_line.decode(self.adb_encoding,errors='ignore'))
+                e.args += (errmsg,)
+                raise e
             if adb_line == self.ADBSYNC_END_OF_COMMAND:
                 break
             else:
