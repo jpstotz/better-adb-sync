@@ -1,6 +1,7 @@
 from typing import Iterable, Tuple
 import os
 import subprocess
+import logging
 
 from ..SAOLogging import logging_fatal
 
@@ -31,7 +32,7 @@ class LocalFileSystem(FileSystem):
             yield filename, self.lstat(self.join(path, filename))
 
     def utime(self, path: str, times: Tuple[int, int]) -> None:
-        os.utime(path, times)
+        os.utime(path, times=times)
 
     def join(self, base: str, leaf: str) -> str:
         return os.path.join(base, leaf)
@@ -43,12 +44,11 @@ class LocalFileSystem(FileSystem):
         return os.path.normpath(path)
 
     def push_file_here(self, source: str, destination: str, show_progress: bool = False) -> None:
-        if show_progress:
-            kwargs_call = {}
-        else:
-            kwargs_call = {
-                "stdout": subprocess.DEVNULL,
-                "stderr": subprocess.DEVNULL
-            }
-        if subprocess.call(self.adb_arguments + ["pull", source, destination], **kwargs_call):
-            logging_fatal("Non-zero exit code from adb pull")
+        adb_cmd = self.adb_arguments + ["pull", source, destination]
+        try:
+            if show_progress:
+                subprocess.check_output(adb_cmd)
+            else:
+                subprocess.run(adb_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError as e:
+            logging.critical(f"Non-zero exit code from adb pull for {source} - stderr: {e.stderr}")

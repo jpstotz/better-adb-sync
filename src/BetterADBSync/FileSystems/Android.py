@@ -7,6 +7,7 @@ import shlex
 import datetime
 import subprocess
 
+from .date_utils import datetime_string_to_posix_timestamp
 from ..SAOLogging import logging_fatal
 
 from .Base import FileSystem
@@ -133,7 +134,7 @@ class AndroidFileSystem(FileSystem):
             if match_groupdict['S_IFSOCK']:
                 st_mode |= stat.S_IFSOCK
             st_size = None if match_groupdict["st_size"] is None else int(match_groupdict["st_size"])
-            st_mtime = int(datetime.datetime.strptime(match_groupdict["st_mtime"], "%Y-%m-%d %H:%M").timestamp())
+            st_mtime = int(datetime_string_to_posix_timestamp(match_groupdict["st_mtime"]))
 
             # Fill the rest with dummy values.
             st_ino = 1
@@ -185,8 +186,9 @@ class AndroidFileSystem(FileSystem):
                 yield self.ls_to_stat(line)
 
     def utime(self, path: str, times: Tuple[int, int]) -> None:
-        atime = datetime.datetime.fromtimestamp(times[0]).strftime("%Y%m%d%H%M")
-        mtime = datetime.datetime.fromtimestamp(times[1]).strftime("%Y%m%d%H%M")
+        base = datetime.datetime(1970, 1, 1)
+        atime = (base + datetime.timedelta(seconds=times[0])).strftime("%Y%m%d%H%M")
+        mtime = (base + datetime.timedelta(seconds=times[1])).strftime("%Y%m%d%H%M")
         for line in self.adb_shell(["touch", "-at", atime, "-mt", mtime, path]):
             self.line_not_captured(line)
 
