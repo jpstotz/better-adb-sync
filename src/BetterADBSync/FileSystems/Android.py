@@ -175,11 +175,11 @@ class AndroidFileSystem(FileSystem):
             # permission error possible?
 
     def lstat(self, path: str) -> os.stat_result:
-        for line in self.adb_shell(["ls", "-lad", path]):
+        for line in self.adb_shell(["ls", "-ladb", path]):
             return self.ls_to_stat(line)[1]
 
     def lstat_in_dir(self, path: str) -> Iterable[Tuple[str, os.stat_result]]:
-        for line in self.adb_shell(["ls", "-la", path]):
+        for line in self.adb_shell(["ls", "-lab", path]):
             if self.RE_TOTAL.fullmatch(line):
                 continue
             else:
