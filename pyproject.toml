@@ -3,7 +3,9 @@ name = "BetterADBSync"
 dynamic = ["version"]
 description = "Better version of adb-sync for Python3"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
+license-files = [ "LICENSE" ]
+requires-python = ">= 3.6"
 
 [project.urls]
 Homepage = "https://github.com/jb2170/better-adb-sync/"
