@@ -1,5 +1,5 @@
 """Nice logging, with colors on Linux."""
-
+import traceback
 from typing import Any, Union
 import logging
 import sys
@@ -61,7 +61,8 @@ def setup_root_logger(
 
 def logging_fatal(message, log_stack_info: bool = True, exit_code: int = 1):
     logging.critical(message)
-    logging.debug("Stack Trace", stack_info = log_stack_info)
+    if log_stack_info and sys.exception() is not None:
+        logging.debug("Stack Trace %s", traceback.format_exc())
     logging.critical("Exiting")
     raise SystemExit(exit_code)
 
