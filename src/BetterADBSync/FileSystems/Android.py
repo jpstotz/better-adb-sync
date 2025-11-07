@@ -113,9 +113,9 @@ class AndroidFileSystem(FileSystem):
 
     def ls_to_stat(self, line: str) -> Tuple[str, os.stat_result]:
         if self.RE_NO_SUCH_FILE.fullmatch(line):
-            raise FileNotFoundError
+            raise FileNotFoundError(f'On Android: "{line}"')
         elif self.RE_LS_NOT_A_DIRECTORY.fullmatch(line):
-            raise NotADirectoryError
+            raise NotADirectoryError(f'On Android: "{line}"')
         elif match := self.RE_LS_TO_STAT.fullmatch(line):
             match_groupdict = match.groupdict()
             st_mode = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH # 755
@@ -144,7 +144,10 @@ class AndroidFileSystem(FileSystem):
             st_gid = -2  # Nobody.
             st_atime = st_ctime = st_mtime
 
-            return match_groupdict["filename"], os.stat_result((st_mode, st_ino, st_rdev, st_nlink, st_uid, st_gid, st_size, st_atime, st_mtime, st_ctime))
+            filename = match_groupdict["filename"]
+            # ls -b escapes spaces - revert that
+            filename = filename.replace('\\ ', ' ')
+            return filename, os.stat_result((st_mode, st_ino, st_rdev, st_nlink, st_uid, st_gid, st_size, st_atime, st_mtime, st_ctime))
         else:
             self.line_not_captured(line)
 
@@ -167,9 +170,9 @@ class AndroidFileSystem(FileSystem):
     def realpath(self, path: str) -> str:
         for line in self.adb_shell(["realpath", path]):
             if self.RE_REALPATH_NO_SUCH_FILE.fullmatch(line):
-                raise FileNotFoundError
+                raise FileNotFoundError(f'On Android: "{line}"')
             elif self.RE_REALPATH_NOT_A_DIRECTORY.fullmatch(line):
-                raise NotADirectoryError
+                raise NotADirectoryError(f'On Android: "{line}"')
             else:
                 return line
             # permission error possible?
@@ -193,6 +196,10 @@ class AndroidFileSystem(FileSystem):
             self.line_not_captured(line)
 
     def join(self, base: str, leaf: str) -> str:
+        if base is None:
+            raise ValueError("base path is None")
+        if leaf is None:
+            raise ValueError("leaf path is None")
         return os.path.join(base, leaf).replace("\\", "/") # for Windows
 
     def split(self, path: str) -> Tuple[str, str]:

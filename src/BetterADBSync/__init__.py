@@ -393,15 +393,15 @@ def main():
     logging.info("")
 
     if isinstance(files_tree_source, dict):
-        excludePatterns = [fs_destination.normpath(
+        exclude_patterns = [fs_destination.normpath(
             fs_destination.join(path_destination, exclude)
         ) for exclude in args.exclude]
     else:
-        excludePatterns = [fs_destination.normpath(
+        exclude_patterns = [fs_destination.normpath(
             path_destination + exclude
         ) for exclude in args.exclude]
     logging.debug("Exclude patterns:")
-    logging.debug(excludePatterns)
+    logging.debug(exclude_patterns)
     logging.debug("")
 
     tree_delete, tree_copy, tree_excluded_source, tree_unaccounted_destination, tree_excluded_destination = FileSyncer.diff_trees(
@@ -409,7 +409,7 @@ def main():
         files_tree_destination,
         path_source,
         path_destination,
-        excludePatterns,
+        exclude_patterns,
         fs_source.join,
         fs_destination.join,
         folder_file_overwrite_error = not args.dry_run and not args.force
