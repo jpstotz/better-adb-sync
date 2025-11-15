@@ -36,12 +36,12 @@ This is a (pretty much from scratch) rewrite of Google's [adbsync](https://githu
 
 The reason for the rewrite is to
 
-1. Update the repo to Python 3 codestyle (strings are by default UTF-8, no more b"" and u"", classes don't need to inherit from object, 4 space indentation etc)
+1. Update the repo to Python 3 codestyle (strings are by default UTF-8, no more `b""` and `u""`, classes don't need to inherit from object, 4 space indentation etc)
 2. Add in support for `--exclude`, `--exclude-from`, `--del`, `--delete-excluded` like `rsync` has (this required a complete rewrite of the diffing algorithm)
 
 ## Additions
 
-- `--del` will delete files and folders on the destination end that are not present on the source end. This does not include exluded files.
+- `--del` will delete files and folders on the destination end that are not present on the source end. This does not include excluded files.
 - `--delete-excluded` will delete excluded files and folders on the destination end.
 - `--exclude` can be used many times. Each should be a `fnmatch` pattern relative to the source. These patterns will be ignored unless `--delete-excluded` is specified.
 - `--exclude-from` can be used many times. Each should be a filename of a file containing `fnmatch` patterns relative to the source.
@@ -54,26 +54,14 @@ I am satisfied with my code so far, however a few things could be added if they 
 
 ---
 
----BEGIN ORIGINAL README.md---
-
-adb-sync
-========
-
-adb-sync is a tool to synchronize files between a PC and an Android device
-using the ADB (Android Debug Bridge).
-
 Related Projects
 ================
 
 Before getting used to this, please review this list of projects that are
 somehow related to adb-sync and may fulfill your needs better:
 
-* [rsync](http://rsync.samba.org/) is a file synchronization tool for local
-  (including FUSE) file systems or SSH connections. This can be used even with
-  Android devices if rooted or using an app like
-  [SSHelper](https://play.google.com/store/apps/details?id=com.arachnoid.sshelper).
-* [adbfs](http://collectskin.com/adbfs/) is a FUSE file system that uses adb to
-  communicate to the device. Requires a rooted device, though.
+* [rsync](https://rsync.samba.org/) is a file synchronization tool for local
+  (including FUSE) file systems or SSH connections. 
 * [adbfs-rootless](https://github.com/spion/adbfs-rootless) is a fork of adbfs
   that requires no root on the device. Does not play very well with rsync.
 * [go-mtpfs](https://github.com/hanwen/go-mtpfs) is a FUSE file system to
@@ -105,16 +93,21 @@ On your Android device:
 PC Side
 -------
 
-* Install the [Android SDK](http://developer.android.com/sdk/index.html) (the
-  stand-alone Android SDK "for an existing IDE" is sufficient). Alternatively,
-  some Linux distributions come with a package named like "android-tools-adb"
+* Install the [Android SDK](https://developer.android.com/studio) which is included in Android Studio. Android SDK will
+  be installed upon first start of Android Studio.    
+  If you don't want to install a Android Studio you can try to download 
+  [command-line-tools](https://developer.android.com/studio/index.html#command-line-tools-only).
+  Some Linux distributions come with a package named like "android-tools-adb"
   that contains the required tool.
-* Make sure "adb" is in your PATH. If you use a package from your Linux
+* Make sure `adb` is in your PATH. If you use a package from your Linux
   distribution, this should already be the case; if you used the SDK, you
   probably will have to add an entry to PATH in your ~/.profile file, log out
   and log back in.
 * `git clone https://github.com/jpstotz/better-adb-sync.git
 * `pip install better-adb-sync/`
+
+On modern Android device the device need to be unlocked (display on and lock screen is 
+not active) when connecting with an USB cable to the PC.   
 
 Usage
 =====
@@ -122,7 +115,7 @@ Usage
 To get a full help, type:
 
 ```
-adb-sync --help
+adbsync --help
 ```
 
 To synchronize your music files from ~/Music to your device, type one of:
@@ -145,47 +138,3 @@ To copy all downloads from your device to your PC, type:
 ```
 adbsync pull /sdcard/Download/ ~/Downloads
 ```
-
-ADB Channel
-===========
-
-This package also contains a separate tool called adb-channel, which is a
-convenience wrapper to connect a networking socket on the Android device to
-file descriptors on the PC side. It can even launch and shut down the given
-application automatically!
-
-It is best used as a `ProxyCommand` for SSH (install
-[SSHelper](https://play.google.com/store/apps/details?id=com.arachnoid.sshelper)
-first) using a configuration like:
-
-```
-Host sshelper
-Port 2222
-ProxyCommand adb-channel tcp:%p com.arachnoid.sshelper/.SSHelperActivity 1
-```
-
-After adding this to `~/.ssh/config`, run `ssh-copy-id sshelper`.
-
-Congratulations! You can now use `rsync`, `sshfs` etc. to the host name
-`sshelper`.
-
-Contributing
-============
-
-Patches to this project are very welcome.
-
-Before sending a patch or pull request, we ask you to fill out one of the
-Contributor License Agreements:
-
-* [Google Individual Contributor License Agreement, v1.1](https://developers.google.com/open-source/cla/individual)
-* [Google Software Grant and Corporate Contributor License Agreement, v1.1](https://developers.google.com/open-source/cla/corporate)
-
-Disclaimer
-==========
-
-This is not an official Google product.
-
-
----END ORIGINAL README.md---
-
----
