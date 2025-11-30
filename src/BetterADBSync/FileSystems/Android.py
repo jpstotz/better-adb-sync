@@ -12,6 +12,7 @@ from ..SAOLogging import logging_fatal
 
 from .Base import FileSystem
 
+
 class AndroidFileSystem(FileSystem):
     RE_TESTCONNECTION_NO_DEVICE = re.compile("^adb\\: no devices/emulators found$")
     RE_TESTCONNECTION_DAEMON_NOT_RUNNING = re.compile("^\\* daemon not running; starting now at tcp:\\d+$")
@@ -67,9 +68,9 @@ class AndroidFileSystem(FileSystem):
         self.adb_encoding = adb_encoding
         self.proc_adb_shell = subprocess.Popen(
             self.adb_arguments + ["shell"],
-            stdin = subprocess.PIPE,
-            stdout = subprocess.PIPE,
-            stderr = subprocess.STDOUT
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
         )
 
     def __del__(self):
@@ -88,7 +89,8 @@ class AndroidFileSystem(FileSystem):
             try:
                 adb_line = adb_line.decode(self.adb_encoding).rstrip("\r\n")
             except UnicodeDecodeError as e:
-                errmsg = "Line to decode without the problematic characters: {}".format(adb_line.decode(self.adb_encoding,errors='ignore'))
+                errmsg = "Line to decode without the problematic characters: {}".format(
+                    adb_line.decode(self.adb_encoding, errors='ignore'))
                 e.args += (errmsg,)
                 raise e
             if adb_line == self.ADBSYNC_END_OF_COMMAND:
@@ -106,19 +108,20 @@ class AndroidFileSystem(FileSystem):
         for line in self.adb_shell([":"]):
             print(line)
 
-            if self.RE_TESTCONNECTION_DAEMON_NOT_RUNNING.fullmatch(line) or self.RE_TESTCONNECTION_DAEMON_STARTED.fullmatch(line):
+            if self.RE_TESTCONNECTION_DAEMON_NOT_RUNNING.fullmatch(
+                    line) or self.RE_TESTCONNECTION_DAEMON_STARTED.fullmatch(line):
                 continue
 
             raise BrokenPipeError
 
-    def ls_to_stat(self, line: str) -> Tuple[str, os.stat_result]:
+    def ls_to_stat(self, line: str) -> Tuple[str | None, os.stat_result]:
         if self.RE_NO_SUCH_FILE.fullmatch(line):
             raise FileNotFoundError(f'On Android: "{line}"')
         elif self.RE_LS_NOT_A_DIRECTORY.fullmatch(line):
             raise NotADirectoryError(f'On Android: "{line}"')
         elif match := self.RE_LS_TO_STAT.fullmatch(line):
             match_groupdict = match.groupdict()
-            st_mode = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH # 755
+            st_mode = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH  # 755
             if match_groupdict['S_IFREG']:
                 st_mode |= stat.S_IFREG
             if match_groupdict['S_IFBLK']:
@@ -145,9 +148,13 @@ class AndroidFileSystem(FileSystem):
             st_atime = st_ctime = st_mtime
 
             filename = match_groupdict["filename"]
-            # ls -b escapes spaces - revert that
-            filename = filename.replace('\\ ', ' ')
-            return filename, os.stat_result((st_mode, st_ino, st_rdev, st_nlink, st_uid, st_gid, st_size, st_atime, st_mtime, st_ctime))
+            # filename can be None on soft links. Example line:
+            # 'lrw-r--r-- 1 root root 21 2022-01-01 01:00 /sdcard -> /storage/self/primary'
+            if filename is not None:
+                # ls -b escapes spaces - revert that
+                filename = filename.replace('\\ ', ' ')
+            return filename, os.stat_result(
+                (st_mode, st_ino, st_rdev, st_nlink, st_uid, st_gid, st_size, st_atime, st_mtime, st_ctime))
         else:
             self.line_not_captured(line)
 
@@ -200,11 +207,11 @@ class AndroidFileSystem(FileSystem):
             raise ValueError("base path is None")
         if leaf is None:
             raise ValueError("leaf path is None")
-        return os.path.join(base, leaf).replace("\\", "/") # for Windows
+        return os.path.join(base, leaf).replace("\\", "/")  # for Windows
 
     def split(self, path: str) -> Tuple[str, str]:
         head, tail = os.path.split(path)
-        return head.replace("\\", "/"), tail # for Windows
+        return head.replace("\\", "/"), tail  # for Windows
 
     def normpath(self, path: str) -> str:
         return os.path.normpath(path).replace("\\", "/")
