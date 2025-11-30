@@ -1,21 +1,14 @@
 [project]
 name = "BetterADBSync"
-dynamic = ["version"]
+version = "1.4.1"
 description = "Better version of adb-sync for Python3"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = [ "LICENSE" ]
-requires-python = ">= 3.6"
+requires-python = ">= 3.8"
 
 [project.urls]
-Homepage = "https://github.com/jb2170/better-adb-sync/"
+Homepage = "https://github.com/jpstotz/better-adb-sync/"
 
 [project.scripts]
 adbsync = "BetterADBSync:main"
-
-[tool.setuptools.dynamic]
-version = {attr = "BetterADBSync.__version__"}
-
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"

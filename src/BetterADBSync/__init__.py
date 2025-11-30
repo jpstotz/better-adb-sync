@@ -2,20 +2,21 @@
 
 """Sync files between a computer and an Android device"""
 
-__version__ = "1.4.0"
 
-from typing import List, Tuple, Union
+import fnmatch
+import importlib.metadata
 import logging
 import os
 import stat
-import fnmatch
+from typing import List, Tuple, Union
 
-from .argparsing import get_cli_args
-from .SAOLogging import logging_fatal, log_tree, setup_root_logger, perror, FATAL
-
+from .FileSystems.Android import AndroidFileSystem
 from .FileSystems.Base import FileSystem
 from .FileSystems.Local import LocalFileSystem
-from .FileSystems.Android import AndroidFileSystem
+from .SAOLogging import logging_fatal, log_tree, setup_root_logger, perror, FATAL
+from .argparsing import get_cli_args
+
+__version__ = importlib.metadata.version(__name__)
 
 class FileSyncer():
     @classmethod
