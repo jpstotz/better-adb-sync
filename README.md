@@ -139,8 +139,8 @@ On your Android device:
   that contains the required tool.
 * Make sure `adb` is in your PATH. If you use a package from your Linux
   distribution, this should already be the case; if you used the SDK, you
-  probably will have to add an entry to PATH in your ~/.profile file, log out
-  and log back in.
+  probably will have to add an entry in the file where your shell manages PATH entries (such as `~/.profile`, `~/.zshrc`
+  or `~/.bashrc`), then log out and log back in.
 * `git clone https://github.com/jpstotz/better-adb-sync.git
 * `pip install better-adb-sync/`
 
