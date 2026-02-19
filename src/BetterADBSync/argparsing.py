@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 @dataclass
-class Args():
+class Args:
     logging_no_color: bool
     logging_verbosity_verbose: int
     logging_verbosity_quiet: int
@@ -32,7 +32,10 @@ class Args():
     direction_pull_local: Optional[str]
 
 def get_cli_args(docstring: str, version: str) -> Args:
-    parser = argparse.ArgumentParser(description = docstring)
+    help_text = '''
+    Better ADB Sync - Get latest version from https://github.com/jpstotz/better-adb-sync
+    '''
+    parser = argparse.ArgumentParser(description = docstring, prog = 'adbsync', epilog=help_text)
     parser.add_argument("--version",
         action = "version",
         version = version
@@ -103,7 +106,7 @@ def get_cli_args(docstring: str, version: str) -> Args:
         dest = "show_progress"
     )
     parser.add_argument("--adb-encoding",
-        help = "Which encoding to use when talking to adb. Defaults to UTF-8. Relevant to GitHub issue #22",
+        help = "Which encoding to use when talking to adb. Defaults to UTF-8. Relevant to GitHub issue https://github.com/jb2170/better-adb-sync/issues/22",
         dest = "adb_encoding",
         default = "UTF-8"
     )
