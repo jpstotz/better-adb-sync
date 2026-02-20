@@ -196,7 +196,6 @@ class AndroidFileSystem(FileSystem):
                 continue
             else:
                 yield self.ls_to_stat(line)
-        raise RuntimeError('Android: "ls -lab" no result')
 
     def utime(self, path: str, times: Tuple[int, int]) -> None:
         base = datetime.datetime(1970, 1, 1)
