@@ -1,6 +1,6 @@
 """Nice logging, with colors on Linux."""
 import traceback
-from typing import Any, Union
+from typing import Any, Union, NoReturn
 import logging
 import sys
 
@@ -59,14 +59,14 @@ def setup_root_logger(
     console_handler.setFormatter(formatter_class(fmt = messagefmt_to_use, datefmt = datefmt))
     root_logger.addHandler(console_handler)
 
-def logging_fatal(message, log_stack_info: bool = True, exit_code: int = 1):
+def logging_fatal(message, log_stack_info: bool = True, exit_code: int = 1) -> NoReturn:
     logging.critical(message)
     if log_stack_info and sys.exception() is not None:
         logging.debug("Stack Trace %s", traceback.format_exc())
     logging.critical("Exiting")
     raise SystemExit(exit_code)
 
-def log_tree(title, tree, finals = None, log_leaves_types = True, logging_level = logging.INFO):
+def log_tree(title, tree, finals = None, log_leaves_types = True, logging_level = logging.INFO) -> None:
     """Log tree nicely if it is a dictionary.
     log_leaves_types can be False to log no leaves, True to log all leaves, or a tuple of types for which to log."""
     if finals is None:
@@ -88,13 +88,12 @@ def log_tree(title, tree, finals = None, log_leaves_types = True, logging_level 
         for key, value in tree_items[-1:]:
             log_tree(key, value, finals = finals + [True], log_leaves_types = log_leaves_types, logging_level = logging_level)
 
-# like logging.CRITICAl, logging.DEBUG etc
-FATAL = 60
-
-def perror(s: Union[str, Any], e: Exception, logging_level: int = logging.ERROR):
+def perror(s: Union[str, Any], e: Exception) -> None:
     strerror = e.strerror if (isinstance(e, OSError) and e.strerror is not None) else e.__class__.__name__
     msg = f"{s}{': ' if s else ''}{strerror}"
-    if logging_level == FATAL:
-        logging_fatal(msg)
-    else:
-        logging.log(logging_level, msg)
+    logging.log(logging.ERROR, msg)
+
+def pfatal(s: Union[str, Any], e: Exception) -> NoReturn:
+    strerror = e.strerror if (isinstance(e, OSError) and e.strerror is not None) else e.__class__.__name__
+    msg = f"{s}{': ' if s else ''}{strerror}"
+    logging_fatal(msg)

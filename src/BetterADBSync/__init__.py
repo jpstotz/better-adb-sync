@@ -14,12 +14,12 @@ from BetterADBSync import adb
 from .FileSystems.Android import AndroidFileSystem
 from .FileSystems.Base import FileSystem
 from .FileSystems.Local import LocalFileSystem
-from .SAOLogging import logging_fatal, log_tree, setup_root_logger, perror, FATAL
+from .SAOLogging import logging_fatal, log_tree, setup_root_logger, perror, pfatal
 from .argparsing import get_cli_args
 
 __version__ = importlib.metadata.version(__name__)
 
-class FileSyncer():
+class FileSyncer:
     @classmethod
     def diff_trees(cls,
         source: Union[dict, Tuple[int, int], None],
@@ -306,7 +306,7 @@ class FileSyncer():
         except FileNotFoundError:
             return path_source, path_destination
         except (NotADirectoryError, PermissionError) as e:
-            perror(path_source, e, FATAL)
+            pfatal(path_source, e)
 
         if stat.S_ISLNK(lstat_destination.st_mode):
             logging_fatal("Destination is a symlink. Not sure what to do. See GitHub issue #8")
@@ -320,7 +320,7 @@ class FileSyncer():
         except FileNotFoundError:
             return path_source, path_destination
         except (NotADirectoryError, PermissionError) as e:
-            perror(path_source, e, FATAL)
+            pfatal(path_source, e)
 
         if stat.S_ISREG(lstat_source.st_mode) or (stat.S_ISDIR(lstat_source.st_mode) and path_source[-1] not in ["/", "\\"]):
             path_destination = fs_destination.join(
@@ -379,14 +379,14 @@ def main():
     try:
         files_tree_source = fs_source.get_files_tree(path_source, follow_links = args.copy_links)
     except (FileNotFoundError, NotADirectoryError, PermissionError) as e:
-        perror(path_source, e, FATAL)
+        pfatal(path_source, e)
 
     try:
         files_tree_destination = fs_destination.get_files_tree(path_destination, follow_links = args.copy_links)
     except FileNotFoundError:
         files_tree_destination = None
     except (NotADirectoryError, PermissionError) as e:
-        perror(path_destination, e, FATAL)
+        pfatal(path_destination, e)
 
     logging.info("Source tree:")
     if files_tree_source is not None:

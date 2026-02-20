@@ -183,10 +183,12 @@ class AndroidFileSystem(FileSystem):
             else:
                 return line
             # permission error possible?
+        raise RuntimeError('Android: "realpath" no result')
 
     def lstat(self, path: str) -> os.stat_result:
         for line in self.adb_shell(["ls", "-ladb", path]):
             return self.ls_to_stat(line)[1]
+        raise RuntimeError('Android: "ls -ladb" no result')
 
     def lstat_in_dir(self, path: str) -> Iterable[Tuple[str, os.stat_result]]:
         for line in self.adb_shell(["ls", "-lab", path]):
@@ -194,6 +196,7 @@ class AndroidFileSystem(FileSystem):
                 continue
             else:
                 yield self.ls_to_stat(line)
+        raise RuntimeError('Android: "ls -lab" no result')
 
     def utime(self, path: str, times: Tuple[int, int]) -> None:
         base = datetime.datetime(1970, 1, 1)

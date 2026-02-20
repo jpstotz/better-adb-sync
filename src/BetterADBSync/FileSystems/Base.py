@@ -6,7 +6,8 @@ import stat
 
 from ..SAOLogging import perror
 
-class FileSystem():
+
+class FileSystem:
     def __init__(self, adb_arguments: List[str]) -> None:
         self.adb_arguments = adb_arguments
 
