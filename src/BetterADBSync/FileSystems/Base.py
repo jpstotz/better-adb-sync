@@ -13,7 +13,7 @@ class FileSystem:
 
     def _get_files_tree(self, tree_path: str, tree_path_stat: os.stat_result, follow_links: bool = False):
         # the reason to have two functions instead of one purely recursive one is to use self.lstat_in_dir ie ls
-        # which is much faster than individually stat-ing each file. Hence we have get_files_tree's special first lstat
+        # which is much faster than individually stat-ing each file. Hence, we have get_files_tree's special first lstat
         if stat.S_ISLNK(tree_path_stat.st_mode):
             if not follow_links:
                 logging.warning(f"Ignoring symlink {tree_path}")
@@ -42,8 +42,8 @@ class FileSystem:
             raise NotImplementedError
 
     def get_files_tree(self, tree_path: str, follow_links: bool = False):
-        statObject = self.lstat(tree_path)
-        return self._get_files_tree(tree_path, statObject, follow_links = follow_links)
+        stat_object = self.lstat(tree_path)
+        return self._get_files_tree(tree_path, stat_object, follow_links = follow_links)
 
     def remove_tree(self, tree_path: str, tree: Union[Tuple[int, int], dict], dry_run: bool = True) -> None:
         if isinstance(tree, tuple):

@@ -3,8 +3,6 @@ import os
 import subprocess
 import logging
 
-from ..SAOLogging import logging_fatal
-
 from .Base import FileSystem
 
 class LocalFileSystem(FileSystem):
