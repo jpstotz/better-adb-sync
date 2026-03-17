@@ -352,8 +352,8 @@ def main():
         adb_arguments.append(f"-{option}")
         adb_arguments.append(value)
 
-    fs_android = AndroidFileSystem(adb_arguments, args.adb_encoding)
-    fs_local = LocalFileSystem(adb_arguments)
+    fs_android = AndroidFileSystem(adb_arguments, args.adb_encoding, args.skip_permission_denied)
+    fs_local = LocalFileSystem(adb_arguments, args.skip_permission_denied)
 
     try:
         fs_android.test_connection()
@@ -458,6 +458,11 @@ def main():
         log_tree(path_destination, tree_excluded_destination, log_leaves_types = False)
     logging.info("")
 
+    if len(fs_source.permission_denied_skipped) > 0:
+        logging.warning("Source elements skipped because of permission denied error:")
+        for filename in fs_source.permission_denied_skipped:
+            logging.warning(f"    {filename}")
+        logging.info("")
 
     tree_unaccounted_destination_non_excluded = None
     if tree_unaccounted_destination is not None:

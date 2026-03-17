@@ -8,8 +8,10 @@ from ..SAOLogging import perror
 
 
 class FileSystem:
-    def __init__(self, adb_arguments: List[str]) -> None:
+    def __init__(self, adb_arguments: List[str], skip_permission_denied: bool) -> None:
         self.adb_arguments = adb_arguments
+        self.skip_permission_denied = skip_permission_denied
+        self.permission_denied_skipped = []
 
     def _get_files_tree(self, tree_path: str, tree_path_stat: os.stat_result, follow_links: bool = False):
         # the reason to have two functions instead of one purely recursive one is to use self.lstat_in_dir ie ls
@@ -28,14 +30,22 @@ class FileSystem:
             return self._get_files_tree(tree_path_realpath, tree_path_stat_realpath, follow_links = follow_links)
         elif stat.S_ISDIR(tree_path_stat.st_mode):
             tree = {".": (60 * (int(tree_path_stat.st_atime) // 60), 60 * (int(tree_path_stat.st_mtime) // 60))}
-            for filename, stat_object_child, in self.lstat_in_dir(tree_path):
-                if filename in [".", ".."]:
-                    continue
-                tree[filename] = self._get_files_tree(
-                    self.join(tree_path, filename),
-                    stat_object_child,
-                    follow_links = follow_links)
-            return tree
+            try:
+                for filename, stat_object_child, in self.lstat_in_dir(tree_path):
+                    if filename in [".", ".."]:
+                        continue
+                    tree[filename] = self._get_files_tree(
+                        self.join(tree_path, filename),
+                        stat_object_child,
+                        follow_links = follow_links)
+                return tree
+            except PermissionError as e:
+                if self.skip_permission_denied:
+                    self.permission_denied_skipped.append(e.filename)
+                    logging.warning(f"Skipping sync of directory {e.filename} - access denied")
+                    return None
+                else:
+                    raise e
         elif stat.S_ISREG(tree_path_stat.st_mode):
             return (60 * (int(tree_path_stat.st_atime) // 60), 60 * (int(tree_path_stat.st_mtime) // 60)) # minute resolution
         else:
