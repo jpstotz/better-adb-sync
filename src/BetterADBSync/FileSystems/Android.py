@@ -1,3 +1,4 @@
+import errno
 from typing import Iterable, Iterator, List, NoReturn, Tuple
 import logging
 import os
@@ -56,6 +57,7 @@ class AndroidFileSystem(FileSystem):
 
     RE_NO_SUCH_FILE = re.compile("^.*: No such file or directory$")
     RE_LS_NOT_A_DIRECTORY = re.compile("ls: .*: Not a directory$")
+    RE_PERMISSION_DENIED = re.compile("ls: (.*): Permission denied")
     RE_TOTAL = re.compile("^total \\d+$")
 
     RE_REALPATH_NO_SUCH_FILE = re.compile("^realpath: .*: No such file or directory$")
@@ -63,8 +65,8 @@ class AndroidFileSystem(FileSystem):
 
     ADBSYNC_END_OF_COMMAND = "ADBSYNC END OF COMMAND"
 
-    def __init__(self, adb_arguments: List[str], adb_encoding: str) -> None:
-        super().__init__(adb_arguments)
+    def __init__(self, adb_arguments: List[str], adb_encoding: str, skip_permission_denied: bool) -> None:
+        super().__init__(adb_arguments, skip_permission_denied)
         self.adb_encoding = adb_encoding
         self.proc_adb_shell = subprocess.Popen(
             self.adb_arguments + ["shell"],
@@ -117,9 +119,15 @@ class AndroidFileSystem(FileSystem):
     def ls_to_stat(self, line: str) -> Tuple[str | None, os.stat_result]:
         if self.RE_NO_SUCH_FILE.fullmatch(line):
             raise FileNotFoundError(f'On Android: "{line}"')
-        elif self.RE_LS_NOT_A_DIRECTORY.fullmatch(line):
+
+        if self.RE_LS_NOT_A_DIRECTORY.fullmatch(line):
             raise NotADirectoryError(f'On Android: "{line}"')
-        elif match := self.RE_LS_TO_STAT.fullmatch(line):
+
+        permission_denied = self.RE_PERMISSION_DENIED.fullmatch(line)
+        if permission_denied:
+            raise PermissionError(errno.EACCES, f'On Android: "{line}"', permission_denied.group(1))
+
+        if match := self.RE_LS_TO_STAT.fullmatch(line):
             match_groupdict = match.groupdict()
             st_mode = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH  # 755
             if match_groupdict['S_IFREG']:

@@ -18,6 +18,7 @@ class Args:
     force: bool
     show_progress: bool
     adb_encoding: str
+    skip_permission_denied: bool
 
     adb_bin: str
     adb_flags: List[str]
@@ -134,6 +135,12 @@ def get_cli_args(docstring: str, version: str) -> Args:
         default = []
     )
 
+    parser.add_argument("--skip-permission-denied",
+        help = "If folders on Android are not accessible because of folder permission ignore this and continue",
+        action = "store_true",
+        dest = "skip_permission_denied"
+    )
+
     parser_direction = parser.add_subparsers(title = "direction",
         dest = "direction",
         required = True
@@ -194,6 +201,7 @@ def get_cli_args(docstring: str, version: str) -> Args:
         args.force,
         args.show_progress,
         args.adb_encoding,
+        args.skip_permission_denied,
 
         args.adb_bin,
         args.adb_flags,
