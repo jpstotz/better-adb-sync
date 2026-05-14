@@ -5,7 +5,7 @@ description = "Better version of adb-sync for Python3"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = [ "LICENSE" ]
-requires-python = ">= 3.8"
+requires-python = ">= 3.10"
 
 [project.urls]
 Homepage = "https://github.com/jpstotz/better-adb-sync/"
