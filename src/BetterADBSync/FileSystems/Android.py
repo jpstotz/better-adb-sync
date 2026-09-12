@@ -51,8 +51,10 @@ class AndroidFileSystem(FileSystem):
         [ ]
         [0-9]{2}:[0-9]{2}) # Time
         [ ]
-        # Don't capture filename for symlinks (ambiguous).
-        (?(S_IFLNK) .* | (?P<filename> .*))
+        # For symlinks "ls -l" prints "name -> target"; capture only the name.
+        # "ls -b" escapes spaces inside names, so an unescaped " -> " can only be the separator.
+        (?P<filename> .*?)
+        (?(S_IFLNK) [ ]->[ ] .*)
         $""", re.DOTALL | re.VERBOSE)
 
     RE_NO_SUCH_FILE = re.compile("^.*: No such file or directory$")
@@ -156,11 +158,8 @@ class AndroidFileSystem(FileSystem):
             st_atime = st_ctime = st_mtime
 
             filename = match_groupdict["filename"]
-            # filename can be None on soft links. Example line:
-            # 'lrw-r--r-- 1 root root 21 2022-01-01 01:00 /sdcard -> /storage/self/primary'
-            if filename is not None:
-                # ls -b escapes spaces - revert that
-                filename = filename.replace('\\ ', ' ')
+            # ls -b escapes spaces - revert that
+            filename = filename.replace('\\ ', ' ')
             return filename, os.stat_result(
                 (st_mode, st_ino, st_rdev, st_nlink, st_uid, st_gid, st_size, st_atime, st_mtime, st_ctime))
         else:

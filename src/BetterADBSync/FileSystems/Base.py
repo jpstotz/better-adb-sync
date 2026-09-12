@@ -32,6 +32,9 @@ class FileSystem:
             tree = {".": (60 * (int(tree_path_stat.st_atime) // 60), 60 * (int(tree_path_stat.st_mtime) // 60))}
             try:
                 for filename, stat_object_child, in self.lstat_in_dir(tree_path):
+                    if filename is None:
+                        logging.warning(f"Ignoring entry with unparseable name in {tree_path}")
+                        continue
                     if filename in [".", ".."]:
                         continue
                     tree[filename] = self._get_files_tree(
