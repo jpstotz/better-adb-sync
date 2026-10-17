@@ -59,7 +59,15 @@ class AndroidFileSystem(FileSystem):
 
     RE_NO_SUCH_FILE = re.compile("^.*: No such file or directory$")
     RE_LS_NOT_A_DIRECTORY = re.compile("ls: .*: Not a directory$")
-    RE_PERMISSION_DENIED = re.compile("ls: (.*): Permission denied")
+    RE_LS_PERMISSION_DENIED = re.compile("ls: (.*): Permission denied")
+    RE_LS_SELINUX_PROTECTED = re.compile(
+        r"""
+        ^(?P<type>[bcdlps-])
+        \?{9}
+        [ ]+
+        (?:(?:\?)[ ]+){3,}
+        (?P<filename>.*?)(?:[ ]+->[ ]+.*)?$
+        """, re.VERBOSE)
     RE_TOTAL = re.compile("^total \\d+$")
 
     RE_REALPATH_NO_SUCH_FILE = re.compile("^realpath: .*: No such file or directory$")
@@ -78,8 +86,12 @@ class AndroidFileSystem(FileSystem):
         )
 
     def __del__(self):
-        self.proc_adb_shell.stdin.close()
-        self.proc_adb_shell.wait()
+        if not hasattr(self, 'proc_adb_shell'):
+            return
+        if self.proc_adb_shell.stdin is not None:
+            self.proc_adb_shell.stdin.close()
+        if self.proc_adb_shell.poll() is None:
+            self.proc_adb_shell.wait()
 
     def adb_shell(self, commands: List[str]) -> Iterator[str]:
         self.proc_adb_shell.stdin.write(shlex.join(commands).encode(self.adb_encoding))
@@ -125,9 +137,14 @@ class AndroidFileSystem(FileSystem):
         if self.RE_LS_NOT_A_DIRECTORY.fullmatch(line):
             raise NotADirectoryError(f'On Android: "{line}"')
 
-        permission_denied = self.RE_PERMISSION_DENIED.fullmatch(line)
+        permission_denied = self.RE_LS_PERMISSION_DENIED.fullmatch(line)
         if permission_denied:
             raise PermissionError(errno.EACCES, f'On Android: "{line}"', permission_denied.group(1))
+
+        protected_match = self.RE_LS_SELINUX_PROTECTED.fullmatch(line)
+        if protected_match:
+            filename = protected_match.group("filename")
+            raise PermissionError(errno.EACCES, f'On Android: "{line}"', filename)
 
         if match := self.RE_LS_TO_STAT.fullmatch(line):
             match_groupdict = match.groupdict()
