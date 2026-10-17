@@ -158,8 +158,9 @@ class AndroidFileSystem(FileSystem):
             st_atime = st_ctime = st_mtime
 
             filename = match_groupdict["filename"]
-            # ls -b escapes spaces - revert that
+            # ls -b escapes spaces and other odd bytes, including non-breaking spaces as octal sequences.
             filename = filename.replace('\\ ', ' ')
+            filename = re.sub(r'\\([0-7]{3})', lambda match: chr(int(match.group(1), 8)), filename)
             return filename, os.stat_result(
                 (st_mode, st_ino, st_rdev, st_nlink, st_uid, st_gid, st_size, st_atime, st_mtime, st_ctime))
         else:

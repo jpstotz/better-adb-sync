@@ -48,6 +48,7 @@ class PullCommandTest(AdbCommandTestCase):
         space_dir = expected_root / "folder with spaces"
         self.assertTrue(space_dir.is_dir())
         self.assertEqual((space_dir / "space file.txt").read_text(encoding="utf-8"), "space file")
+        self.assertEqual((space_dir / "nbsp\xa0file.txt").read_text(encoding="utf-8"), "nbsp file")
 
         special_dir = space_dir / "nested (with) [brackets] & plus+sign"
         self.assertTrue(special_dir.is_dir())
