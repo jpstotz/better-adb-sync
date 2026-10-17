@@ -1,5 +1,9 @@
+import subprocess
 import unittest
+import uuid
 from pathlib import Path
+
+from test import unit_test_utils
 
 try:
     from test.unit_test_utils import AdbCommandTestCase, ANDROID_TEST_ROOT
@@ -10,13 +14,12 @@ except ModuleNotFoundError:  # pragma: no cover
 class PullCommandTest(AdbCommandTestCase):
     local_dir_prefix = "better-adb-sync-pull"
 
-    def test_pull_command_copies_files_and_directories(self):
-        self._adb_shell(f"rm -rf /data/local/tmp/*")
-        self._adb_shell(f"mkdir -p {ANDROID_TEST_ROOT}/nested/empty {ANDROID_TEST_ROOT}/nested/with_files")
-        self._adb_shell(f"printf '%s' 'root file' > {ANDROID_TEST_ROOT}/root.txt")
-        self._adb_shell(f"printf '%s' 'nested file' > {ANDROID_TEST_ROOT}/nested/with_files/inner.txt")
-        self._adb_shell(f"printf '%s' 'hidden file' > {ANDROID_TEST_ROOT}/.hidden.txt")
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._prepare_android_test_environment()
 
+    def test_pull_command_copies_files_and_directories(self):
         destination = self.local_dir / "pull-target"
         destination.mkdir(parents=True, exist_ok=True)
 
@@ -41,6 +44,52 @@ class PullCommandTest(AdbCommandTestCase):
 
         self.assertTrue((expected_root / ".hidden.txt").is_file())
         self.assertEqual((expected_root / ".hidden.txt").read_text(encoding="utf-8"), "hidden file")
+
+        space_dir = expected_root / "folder with spaces"
+        self.assertTrue(space_dir.is_dir())
+        self.assertEqual((space_dir / "space file.txt").read_text(encoding="utf-8"), "space file")
+
+        special_dir = space_dir / "nested (with) [brackets] & plus+sign"
+        self.assertTrue(special_dir.is_dir())
+        self.assertEqual((special_dir / "special!file#1+plus.txt").read_text(encoding="utf-8"), "special file")
+
+        hash_dir = expected_root / "with#hash!and+plus"
+        self.assertTrue(hash_dir.is_dir())
+        self.assertEqual((hash_dir / "hash file.txt").read_text(encoding="utf-8"), "hash file")
+
+        umlaut_dir = expected_root / "emoji-äöü"
+        self.assertTrue(umlaut_dir.is_dir())
+        self.assertEqual((umlaut_dir / "äöü.txt").read_text(encoding="utf-8"), "unicode file")
+
+        smiley_dir = space_dir / "emoji-☺"
+        self.assertTrue(smiley_dir.is_dir())
+        self.assertEqual((smiley_dir / "smiley-☺.txt").read_text(encoding="utf-8"), "smiley file")
+
+    @classmethod
+    def _prepare_android_test_environment(cls):
+        setup_script = unit_test_utils.REPO_ROOT / "test" / "android_test_setup.sh"
+        if not setup_script.exists():
+            raise FileNotFoundError(f"Missing Android test setup script at {setup_script}")
+
+        remote_script = f"/data/local/tmp/better_adb_sync_setup_{uuid.uuid4().hex}.sh"
+        subprocess.run(
+            [cls.adb, "push", str(setup_script), remote_script],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        subprocess.run(
+            [cls.adb, "shell", f"chmod 755 {remote_script}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        subprocess.run(
+            [cls.adb, "shell", remote_script],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
 
 if __name__ == "__main__":
