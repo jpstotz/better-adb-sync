@@ -133,14 +133,14 @@ On your Android device:
 
 * Install the [Android SDK](https://developer.android.com/studio) which is included in Android Studio. Android SDK will
   be installed upon first start of Android Studio.    
-  If you don't want to install a Android Studio you can try to download 
-  [command-line-tools](https://developer.android.com/studio/index.html#command-line-tools-only).
+  If you don't want to install a Android Studio you can try to download the Android SDK
+  [platform-tools](https://developer.android.com/tools/releases/platform-tools).
   Some Linux distributions come with a package named like "android-tools-adb"
   that contains the required tool.
 * Make sure `adb` is in your PATH. If you use a package from your Linux
   distribution, this should already be the case; if you used the SDK, you
-  probably will have to add an entry to PATH in your ~/.profile file, log out
-  and log back in.
+  probably will have to add an entry in the file where your shell manages PATH entries (such as `~/.profile`, `~/.zshrc`
+  or `~/.bashrc`), then log out and log back in.
 * `git clone https://github.com/jpstotz/better-adb-sync.git
 * `pip install better-adb-sync/`
 
